@@ -1,18 +1,6 @@
 import type { APIRoute } from 'astro';
-import { put, list, del } from '@vercel/blob';
 
-const BLOB_KEY = 'waitlist/signups.json';
-
-async function getSignups(): Promise<string[]> {
-  try {
-    const { blobs } = await list({ prefix: 'waitlist/signups' });
-    if (!blobs.length) return [];
-    const res = await fetch(blobs[0].downloadUrl);
-    return await res.json();
-  } catch {
-    return [];
-  }
-}
+const FORMSPARK_URL = 'https://submit.formspark.io/f/tH9jwnWcF';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -25,29 +13,17 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const normalized = email.toLowerCase().trim();
-    const signups = await getSignups();
-
-    if (signups.includes(normalized)) {
-      return new Response(JSON.stringify({ error: 'You\'re already on the list.' }), {
-        status: 409,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    signups.push(normalized);
-
-    // Delete old blob first, then write fresh (Blob doesn't overwrite by default)
-    const { blobs } = await list({ prefix: 'waitlist/signups' });
-    if (blobs.length) await del(blobs[0].url);
-
-    await put(BLOB_KEY, JSON.stringify(signups), {
-      access: 'private',
-      contentType: 'application/json',
-      addRandomSuffix: false,
+    const res = await fetch(FORMSPARK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
     });
 
-    console.log(`[WAITLIST] New signup: ${normalized} (total: ${signups.length})`);
+    if (!res.ok) {
+      throw new Error(`Formspark error: ${res.status}`);
+    }
+
+    console.log(`[WAITLIST] New signup: ${email}`);
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
