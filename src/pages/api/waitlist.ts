@@ -1,4 +1,17 @@
 import type { APIRoute } from 'astro';
+import { put, head, getDownloadUrl } from '@vercel/blob';
+
+const BLOB_KEY = 'waitlist/signups.json';
+
+async function getSignups(): Promise<string[]> {
+  try {
+    const blob = await head(BLOB_KEY);
+    const res = await fetch(blob.url);
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -12,53 +25,24 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const normalized = email.toLowerCase().trim();
+    const signups = await getSignups();
 
-    // Store in Vercel KV if available, otherwise log
-    // To enable: run `vercel env add KV_REST_API_URL` and `vercel env add KV_REST_API_TOKEN`
-    // after linking a KV store in your Vercel dashboard.
-    const kvUrl = import.meta.env.KV_REST_API_URL;
-    const kvToken = import.meta.env.KV_REST_API_TOKEN;
-
-    if (kvUrl && kvToken) {
-      const key = `waitlist:${normalized}`;
-      const timestamp = new Date().toISOString();
-
-      // Check for duplicate
-      const checkRes = await fetch(`${kvUrl}/get/${key}`, {
-        headers: { Authorization: `Bearer ${kvToken}` },
+    if (signups.includes(normalized)) {
+      return new Response(JSON.stringify({ error: 'You\'re already on the list.' }), {
+        status: 409,
+        headers: { 'Content-Type': 'application/json' },
       });
-      const existing = await checkRes.json();
-
-      if (existing.result) {
-        return new Response(JSON.stringify({ error: 'You\'re already on the list.' }), {
-          status: 409,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-
-      // Store the entry
-      await fetch(`${kvUrl}/set/${key}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${kvToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(timestamp),
-      });
-
-      // Append to a sorted list for easy export
-      await fetch(`${kvUrl}/lpush/waitlist:all`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${kvToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(`${normalized}|${timestamp}`),
-      });
-    } else {
-      // Fallback: log to console (visible in Vercel function logs)
-      console.log(`[WAITLIST] New signup: ${normalized} at ${new Date().toISOString()}`);
     }
+
+    signups.push(normalized);
+
+    await put(BLOB_KEY, JSON.stringify(signups), {
+      access: 'public',
+      contentType: 'application/json',
+      addRandomSuffix: false,
+    });
+
+    console.log(`[WAITLIST] New signup: ${normalized}`);
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
