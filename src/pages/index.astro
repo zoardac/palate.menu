@@ -1,0 +1,642 @@
+---
+import Base from '../layouts/Base.astro';
+import WaitlistForm from '../components/WaitlistForm.astro';
+---
+<Base>
+<style is:global>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --ink: #16120e;
+    --ink2: #3d342a;
+    --ink3: #7a6e62;
+    --paper: #faf6f0;
+    --paper2: #f2ece2;
+    --paper3: #e6ddd0;
+    --gold: #c9a23a;
+    --gold-light: #f5ead0;
+    --wine: #6e2535;
+    --wine-light: #f5e8eb;
+    --teal: #1d5c5c;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 60%, rgba(201,162,58,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 20% 80%, rgba(110,37,53,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 30% 40% at 80% 20%, rgba(29,92,92,0.08) 0%, transparent 60%);
+  }
+
+  .hero-rule {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, transparent, var(--gold));
+    margin: 0 auto 40px;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.2s forwards;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 400; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 28px;
+    opacity: 0; animation: fadeUp 1s ease 0.4s forwards;
+  }
+
+  .hero-logo {
+    font-family: var(--serif);
+    font-size: clamp(64px, 10vw, 120px);
+    font-weight: 300; font-style: italic; letter-spacing: 0.06em;
+    line-height: 1; color: var(--paper); margin-bottom: 32px;
+    opacity: 0; animation: fadeUp 1s ease 0.6s forwards;
+  }
+
+  .hero-logo .star { color: var(--gold); font-style: normal; }
+
+  .hero-tagline {
+    font-family: var(--serif);
+    font-size: clamp(18px, 3vw, 26px); font-weight: 300; font-style: italic;
+    color: var(--paper3); max-width: 560px; line-height: 1.5; margin-bottom: 48px;
+    opacity: 0; animation: fadeUp 1s ease 0.8s forwards;
+  }
+
+  .hero-form-wrap {
+    opacity: 0; animation: fadeUp 1s ease 1s forwards;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    width: 100%; max-width: 480px;
+  }
+
+  .hero-pairing {
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,162,58,0.15);
+    border-radius: 4px; padding: 12px 20px;
+    font-size: 14px; opacity: 0;
+    animation: fadeUp 1s ease 1.2s forwards;
+  }
+
+  .pairing-dish { font-family: var(--serif); font-size: 15px; font-style: italic; color: var(--paper); }
+  .pairing-sep { color: var(--gold); font-size: 16px; }
+  .pairing-track { font-size: 12px; color: var(--ink3); }
+  .pairing-track span { color: var(--gold); }
+
+  .hero-scroll {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; animation: fadeIn 1s ease 1.6s forwards;
+  }
+
+  .scroll-text { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink3); }
+  .scroll-line { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--ink3), transparent); animation: scrollPulse 2s ease infinite; }
+
+  /* ── SECTIONS ── */
+  section { padding: 120px 40px; max-width: 1100px; margin: 0 auto; }
+
+  .section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+
+  .section-heading {
+    font-family: var(--serif); font-size: clamp(36px, 5vw, 60px);
+    font-weight: 300; line-height: 1.15; color: var(--paper); margin-bottom: 24px;
+  }
+
+  .section-heading em { font-style: italic; color: var(--gold); }
+  .section-body { font-size: 16px; color: var(--ink3); line-height: 1.8; max-width: 560px; }
+
+  hr.rule { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0 40px; }
+
+  /* ── PROBLEM ── */
+  .problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 72px; }
+
+  .problem-cell {
+    padding: 48px 40px; background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;
+  }
+
+  .problem-cell:hover { background: rgba(255,255,255,0.04); }
+  .cell-num { font-family: var(--serif); font-size: 48px; font-weight: 300; color: rgba(255,255,255,0.06); line-height: 1; margin-bottom: 16px; }
+  .cell-heading { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--paper); margin-bottom: 12px; line-height: 1.3; }
+  .cell-body { font-size: 14px; color: var(--ink3); line-height: 1.75; }
+
+  /* ── PRODUCT ── */
+  .product-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .product-features { display: flex; flex-direction: column; gap: 32px; margin-top: 48px; }
+
+  .feature { display: flex; gap: 20px; align-items: flex-start; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .feature:last-child { border-bottom: none; }
+  .feature-star { color: var(--gold); font-size: 16px; margin-top: 3px; flex-shrink: 0; }
+  .feature-name { font-family: var(--serif); font-size: 18px; font-weight: 400; color: var(--paper); margin-bottom: 6px; }
+  .feature-desc { font-size: 13px; color: var(--ink3); line-height: 1.7; }
+
+  /* App mockup */
+  .app-mockup { background: #0e0b08; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
+  .mockup-bar { background: #0a0806; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .mockup-logo { font-family: var(--serif); font-size: 16px; font-style: italic; color: var(--paper); letter-spacing: 0.08em; }
+  .mockup-logo .star { color: var(--gold); font-style: normal; }
+  .mockup-card { margin: 20px; border: 1px solid rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; }
+  .mockup-img { height: 140px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .mockup-card-body { padding: 16px; }
+  .mockup-venue { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink3); margin-bottom: 4px; }
+  .mockup-dish { font-family: var(--serif); font-size: 17px; color: var(--paper); margin-bottom: 8px; }
+  .mockup-note { font-family: var(--serif); font-size: 13px; font-style: italic; color: var(--ink3); margin-bottom: 12px; line-height: 1.5; }
+  .mockup-track { display: flex; align-items: center; gap: 8px; background: #0a0806; border-radius: 3px; padding: 8px 10px; }
+  .mockup-play { width: 22px; height: 22px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .mockup-triangle { width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 7px solid #0a0806; margin-left: 2px; }
+  .mockup-track-name { font-size: 12px; font-weight: 500; color: var(--paper); flex: 1; }
+  .mockup-track-artist { font-size: 10px; color: var(--ink3); }
+  .mockup-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 10px 16px 12px; border-top: 1px solid rgba(255,255,255,0.04); }
+  .mockup-action { font-size: 11px; color: var(--ink3); }
+  .mockup-action.gold { color: var(--gold); }
+
+  /* ── MARKET ── */
+  .market-band { background: var(--paper2); padding: 100px 40px; }
+  .market-inner { max-width: 1100px; margin: 0 auto; }
+  .market-band .section-label { color: var(--gold); }
+  .market-band .section-heading { color: var(--ink); }
+  .market-band .section-body { color: var(--ink2); }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 64px; }
+  .stat-cell { background: var(--paper); padding: 40px 32px; border: 1px solid var(--paper3); }
+  .stat-num { font-family: var(--serif); font-size: 56px; font-weight: 300; color: var(--ink); line-height: 1; margin-bottom: 8px; }
+  .stat-unit { font-family: var(--serif); font-size: 28px; color: var(--gold); }
+  .stat-label { font-size: 13px; color: var(--ink3); line-height: 1.5; }
+
+  /* ── WHITESPACE ── */
+  .whitespace-band { background: var(--paper); padding: 100px 40px; }
+  .whitespace-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .whitespace-band .section-label { color: var(--gold); }
+  .whitespace-band .section-heading { color: var(--ink); }
+  .whitespace-band .section-body { color: var(--ink2); }
+
+  .competitor-list { display: flex; flex-direction: column; gap: 2px; margin-top: 32px; }
+  .competitor-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; }
+  .comp-cell { padding: 14px 16px; background: var(--paper2); font-size: 12px; color: var(--ink2); }
+  .comp-cell.header { background: var(--paper3); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); font-weight: 500; }
+  .comp-cell.name { font-weight: 500; color: var(--ink); }
+  .comp-cell.yes { color: var(--teal); }
+  .comp-cell.no { color: var(--ink3); }
+  .comp-cell.palate { background: var(--ink); color: var(--paper); font-weight: 500; }
+  .comp-cell.palate-yes { background: var(--ink); color: var(--gold); }
+
+  /* ── BUSINESS MODEL ── */
+  .model-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; margin-top: 64px; }
+
+  .model-card {
+    padding: 40px 36px; border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02); position: relative; overflow: hidden; transition: background 0.2s;
+  }
+
+  .model-card:hover { background: rgba(255,255,255,0.04); }
+  .model-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .model-card.gold-top::before { background: var(--gold); }
+  .model-card.wine-top::before { background: var(--wine); }
+  .model-card.teal-top::before { background: var(--teal); }
+  .model-card.gray-top::before { background: rgba(255,255,255,0.15); }
+
+  .model-revenue { font-family: var(--serif); font-size: 13px; font-style: italic; color: var(--gold); margin-bottom: 12px; }
+  .model-name { font-family: var(--serif); font-size: 24px; font-weight: 400; color: var(--paper); margin-bottom: 12px; line-height: 1.2; }
+  .model-desc { font-size: 13px; color: var(--ink3); line-height: 1.75; margin-bottom: 20px; }
+
+  .model-bullets { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .model-bullets li { font-size: 12px; color: rgba(255,255,255,0.4); display: flex; gap: 8px; align-items: baseline; }
+  .model-bullets li::before { content: '—'; color: var(--gold); flex-shrink: 0; }
+
+  /* ── LAUNCH ── */
+  .launch-timeline { display: flex; flex-direction: column; gap: 0; margin-top: 64px; position: relative; }
+  .launch-timeline::before { content: ''; position: absolute; left: 32px; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.06); }
+
+  .phase { display: grid; grid-template-columns: 64px 1fr; gap: 32px; padding: 48px 0; border-bottom: 1px solid rgba(255,255,255,0.04); position: relative; }
+  .phase:last-child { border-bottom: none; }
+
+  .phase-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--gold); background: var(--ink); margin-top: 6px; position: relative; z-index: 1; align-self: start; justify-self: center; }
+  .phase-dot.filled { background: var(--gold); }
+
+  .phase-timing { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .phase-name { font-family: var(--serif); font-size: 26px; font-weight: 400; color: var(--paper); margin-bottom: 12px; line-height: 1.2; }
+  .phase-desc { font-size: 14px; color: var(--ink3); line-height: 1.75; max-width: 560px; margin-bottom: 16px; }
+
+  .phase-milestones { display: flex; gap: 8px; flex-wrap: wrap; }
+  .milestone-pill { padding: 4px 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; font-size: 11px; color: rgba(255,255,255,0.45); letter-spacing: 0.03em; }
+
+  /* ── CTA ── */
+  .cta-section { text-align: center; padding: 160px 40px; position: relative; overflow: hidden; }
+  .cta-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 50% 60% at 50% 50%, rgba(201,162,58,0.08) 0%, transparent 70%); }
+
+  .cta-logo { font-family: var(--serif); font-size: clamp(48px, 8vw, 96px); font-weight: 300; font-style: italic; color: var(--paper); letter-spacing: 0.08em; margin-bottom: 24px; position: relative; }
+  .cta-logo .star { color: var(--gold); font-style: normal; }
+  .cta-sub { font-family: var(--serif); font-size: 20px; font-style: italic; color: var(--ink3); margin-bottom: 56px; position: relative; }
+
+  .cta-form-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; position: relative; }
+
+  .cta-rule { width: 1px; height: 60px; background: linear-gradient(to top, transparent, var(--gold)); margin: 56px auto 0; opacity: 0.4; }
+
+  /* ── FOOTER ── */
+  footer { padding: 40px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+  .footer-logo { font-family: var(--serif); font-size: 18px; font-style: italic; color: rgba(255,255,255,0.3); letter-spacing: 0.08em; }
+  .footer-logo .star { color: var(--gold); font-style: normal; opacity: 0.6; }
+  .footer-copy { font-size: 11px; color: rgba(255,255,255,0.2); letter-spacing: 0.06em; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes scrollPulse { 0%, 100% { opacity: 0.3; transform: scaleY(1); } 50% { opacity: 0.7; transform: scaleY(1.1); } }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease, transform 0.8s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  @media (max-width: 768px) {
+    section { padding: 80px 24px; }
+    .problem-grid, .product-layout, .whitespace-inner, .model-grid { grid-template-columns: 1fr; gap: 2px; }
+    .stats-row { grid-template-columns: 1fr; }
+    hr.rule { margin: 0 24px; }
+    .market-band, .whitespace-band { padding: 80px 24px; }
+    .phase { grid-template-columns: 48px 1fr; gap: 20px; }
+    .launch-timeline::before { left: 24px; }
+  }
+</style>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-rule"></div>
+  <div class="hero-eyebrow">Introducing</div>
+  <div class="hero-logo"><span class="star">✦</span>Palate</div>
+  <div class="hero-tagline">The social platform where every dish finds its song — and every meal becomes a memory worth sharing.</div>
+  <div class="hero-form-wrap">
+    <WaitlistForm />
+  </div>
+  <div class="hero-pairing">
+    <div class="pairing-dish">Uni toast, yuzu kosho</div>
+    <div class="pairing-sep">✦</div>
+    <div class="pairing-track"><span>♪</span> Clair de Lune — Debussy</div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-text">Scroll</div>
+    <div class="scroll-line"></div>
+  </div>
+</div>
+
+<hr class="rule" />
+
+<!-- PROBLEM -->
+<section>
+  <div class="reveal"><div class="section-label">The Opportunity</div></div>
+  <div class="reveal reveal-delay-1">
+    <div class="section-heading">Food and music are <em>inseparable.</em><br>The internet hasn't caught up.</div>
+  </div>
+  <div class="reveal reveal-delay-2">
+    <div class="section-body">Every meaningful meal has a soundtrack. Yet there's no place to capture that — no platform that treats the pairing of flavor and sound as the cultural act it truly is.</div>
+  </div>
+  <div class="problem-grid">
+    <div class="problem-cell reveal reveal-delay-1">
+      <div class="cell-num">01</div>
+      <div class="cell-heading">Food social is visual, not experiential</div>
+      <div class="cell-body">Instagram and TikTok capture how food looks. They can't capture how it felt — the ambiance, the mood, the moment. The most important dimension is missing.</div>
+    </div>
+    <div class="problem-cell reveal reveal-delay-2">
+      <div class="cell-num">02</div>
+      <div class="cell-heading">Restaurant playlists are invisible to diners</div>
+      <div class="cell-body">B2B services like Mood Media and Jukeboxy curate music for venues — but diners have no way to engage with, respond to, or remember what they heard.</div>
+    </div>
+    <div class="problem-cell reveal reveal-delay-3">
+      <div class="cell-num">03</div>
+      <div class="cell-heading">Music discovery has no taste context</div>
+      <div class="cell-body">Spotify and Apple Music know what you listen to. They don't know that you discovered Nuvole Bianche over hamachi crudo at Marea on a Tuesday night in October.</div>
+    </div>
+    <div class="problem-cell reveal reveal-delay-4">
+      <div class="cell-num">04</div>
+      <div class="cell-heading">Nobody owns the food × music data layer</div>
+      <div class="cell-body">The cross-section of culinary culture and musical taste is one of the richest unexplored datasets in consumer behavior. It's sitting unclaimed.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule" />
+
+<!-- PRODUCT -->
+<section>
+  <div class="product-layout">
+    <div>
+      <div class="reveal"><div class="section-label">The Product</div></div>
+      <div class="reveal reveal-delay-1">
+        <div class="section-heading">A pairing for<br>every <em>plate.</em></div>
+      </div>
+      <div class="reveal reveal-delay-2">
+        <div class="section-body" style="margin-bottom: 48px;">✦Palate is a social platform where food and music are inseparable. Every post is a Pairing — a dish, a song, and a 150-character tasting note.</div>
+      </div>
+      <div class="product-features">
+        <div class="feature reveal reveal-delay-1">
+          <div class="feature-star">✦</div>
+          <div>
+            <div class="feature-name">The Pairing</div>
+            <div class="feature-desc">Post a dish with a song and a note. The atomic unit of ✦Palate — minimal, intentional, beautiful.</div>
+          </div>
+        </div>
+        <div class="feature reveal reveal-delay-2">
+          <div class="feature-star">↺</div>
+          <div>
+            <div class="feature-name">The Remix</div>
+            <div class="feature-desc">Suggest a different song for any dish. The community votes. Over time, iconic dishes accumulate a Chord — a canon of community-approved pairings.</div>
+          </div>
+        </div>
+        <div class="feature reveal reveal-delay-3">
+          <div class="feature-star">◫</div>
+          <div>
+            <div class="feature-name">Menus</div>
+            <div class="feature-desc">Curate personal collections — "Heartbreak Ramen," "Sundays in Autumn" — that export as Spotify playlists.</div>
+          </div>
+        </div>
+        <div class="feature reveal reveal-delay-4">
+          <div class="feature-star">⌂</div>
+          <div>
+            <div class="feature-name">Restaurant Profiles</div>
+            <div class="feature-desc">Venues claim their page, pin Official Pairings, and publish Tonight's Soundtrack in real time.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal reveal-delay-2">
+      <div class="app-mockup">
+        <div class="mockup-bar">
+          <div class="mockup-logo"><span class="star">✦</span>Palate</div>
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#7a6e62">Your Feed</div>
+        </div>
+        <div class="mockup-card">
+          <div class="mockup-img">
+            <svg viewBox="0 0 340 140" width="100%" height="140">
+              <rect width="340" height="140" fill="#2a1f15"/>
+              <ellipse cx="170" cy="95" rx="75" ry="16" fill="#3a2d20"/>
+              <ellipse cx="170" cy="88" rx="73" ry="50" fill="#1a1008"/>
+              <ellipse cx="170" cy="90" rx="70" ry="44" fill="#3d2010"/>
+              <path d="M105,95 Q135,78 170,88 Q205,98 228,92" stroke="#c4a870" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <path d="M112,103 Q140,86 172,94 Q200,102 222,98" stroke="#b09860" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <ellipse cx="158" cy="76" rx="18" ry="10" fill="#7a3018" transform="rotate(-8,158,76)"/>
+              <ellipse cx="158" cy="74" rx="16" ry="8" fill="#9a3820" transform="rotate(-8,158,74)"/>
+              <ellipse cx="196" cy="73" rx="14" ry="13" fill="#c49830"/>
+              <ellipse cx="196" cy="73" rx="8" ry="7" fill="#b46018"/>
+              <path d="M135,84 Q138,72 136,64" stroke="#4a7a2a" stroke-width="1.5" fill="none"/>
+              <path d="M144,82 Q147,70 145,62" stroke="#5a8a3a" stroke-width="1.5" fill="none"/>
+              <path d="M168,52 Q164,38 168,28" stroke="white" stroke-width="0.8" fill="none" opacity="0.15"/>
+              <path d="M180,50 Q184,36 181,24" stroke="white" stroke-width="0.7" fill="none" opacity="0.12"/>
+            </svg>
+          </div>
+          <div class="mockup-card-body">
+            <div class="mockup-venue">Ippudo · East Village</div>
+            <div class="mockup-dish">Tonkotsu ramen, ajitsuke tamago</div>
+            <div class="mockup-note">"The broth is a meditation. Rich enough to be a meal, honest enough to be a hug."</div>
+            <div class="mockup-track">
+              <div class="mockup-play"><div class="mockup-triangle"></div></div>
+              <div>
+                <div class="mockup-track-name">Weightless — Marconi Union</div>
+                <div class="mockup-track-artist">30s preview</div>
+              </div>
+            </div>
+          </div>
+          <div class="mockup-actions">
+            <div class="mockup-action gold">✦ 127 resonate</div>
+            <div class="mockup-action">↺ 34 remixes</div>
+          </div>
+        </div>
+        <div style="padding: 0 20px 20px; display:flex; gap:8px; flex-wrap:wrap;">
+          <div style="padding:4px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:20px;font-size:10px;color:rgba(255,255,255,0.3)">Solo dinner</div>
+          <div style="padding:4px 10px;border:1px solid rgba(201,162,58,0.2);border-radius:20px;font-size:10px;color:var(--gold)">Intense</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARKET -->
+<div class="market-band">
+  <div class="market-inner">
+    <div class="reveal"><div class="section-label">Market Size</div></div>
+    <div class="reveal reveal-delay-1">
+      <div class="section-heading">Two massive industries.<br>One <em>untapped</em> intersection.</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-cell reveal reveal-delay-1">
+        <div class="stat-num">$3.5<span class="stat-unit">T</span></div>
+        <div class="stat-label">Global restaurant & food service industry</div>
+      </div>
+      <div class="stat-cell reveal reveal-delay-2">
+        <div class="stat-num">$28<span class="stat-unit">B</span></div>
+        <div class="stat-label">Global music streaming market, growing 10% YoY</div>
+      </div>
+      <div class="stat-cell reveal reveal-delay-3">
+        <div class="stat-num">$0</div>
+        <div class="stat-label">Platforms serving the consumer food × music intersection</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WHITESPACE -->
+<div class="whitespace-band">
+  <div class="whitespace-inner">
+    <div>
+      <div class="reveal"><div class="section-label">Competitive Landscape</div></div>
+      <div class="reveal reveal-delay-1"><div class="section-heading">The white space is <em>real.</em></div></div>
+      <div class="reveal reveal-delay-2"><div class="section-body">Every adjacent player is either B2B-only, food-only, or music-only. Nobody has built the consumer-facing social layer where food and music meet.</div></div>
+    </div>
+    <div class="reveal reveal-delay-2">
+      <div class="competitor-list">
+        <div class="competitor-row">
+          <div class="comp-cell header">Platform</div>
+          <div class="comp-cell header">Food social</div>
+          <div class="comp-cell header">Music pairing</div>
+        </div>
+        <div class="competitor-row">
+          <div class="comp-cell name">Instagram</div>
+          <div class="comp-cell yes">✓ Visual only</div>
+          <div class="comp-cell no">✗</div>
+        </div>
+        <div class="competitor-row">
+          <div class="comp-cell name">Spotify</div>
+          <div class="comp-cell no">✗</div>
+          <div class="comp-cell yes">✓ Music only</div>
+        </div>
+        <div class="competitor-row">
+          <div class="comp-cell name">Yelp / OpenTable</div>
+          <div class="comp-cell yes">✓ Reviews</div>
+          <div class="comp-cell no">✗</div>
+        </div>
+        <div class="competitor-row">
+          <div class="comp-cell name">Mood Media</div>
+          <div class="comp-cell no">✗</div>
+          <div class="comp-cell yes">✓ B2B only</div>
+        </div>
+        <div class="competitor-row">
+          <div class="comp-cell palate">✦Palate</div>
+          <div class="comp-cell palate-yes">✓ Experiential</div>
+          <div class="comp-cell palate-yes">✓ Consumer + B2B</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BUSINESS MODEL -->
+<section>
+  <div class="reveal"><div class="section-label">Business Model</div></div>
+  <div class="reveal reveal-delay-1"><div class="section-heading">Four revenue streams.<br>One <em>flywheel.</em></div></div>
+  <div class="reveal reveal-delay-2"><div class="section-body">More users → richer pairing data → more valuable restaurant profiles → more restaurants join → more content → more users.</div></div>
+  <div class="model-grid">
+    <div class="model-card gold-top reveal reveal-delay-1">
+      <div class="model-revenue">~$8 / month</div>
+      <div class="model-name">✦Palate Pro</div>
+      <div class="model-desc">Consumer subscription for foodies who take taste seriously. Unlimited Menus, Spotify export, Mood Map, and early editorial access.</div>
+      <ul class="model-bullets">
+        <li>Target: 25,000 subscribers by Year 2</li>
+        <li>$2M ARR at scale</li>
+        <li>The Letterboxd model</li>
+      </ul>
+    </div>
+    <div class="model-card wine-top reveal reveal-delay-2">
+      <div class="model-revenue">$99–299 / month per venue</div>
+      <div class="model-name">Restaurant Partner Program</div>
+      <div class="model-desc">B2B SaaS for venues. Branded profiles, dish analytics, Official Pairings, embeddable widgets, and real-time soundtrack publishing.</div>
+      <ul class="model-bullets">
+        <li>Target: 500 venues by Year 2</li>
+        <li>$900K ARR at scale</li>
+        <li>High-intent, recurring revenue</li>
+      </ul>
+    </div>
+    <div class="model-card teal-top reveal reveal-delay-3">
+      <div class="model-revenue">Licensing deals</div>
+      <div class="model-name">The Pairing Index</div>
+      <div class="model-desc">The world's largest dataset of human food-music associations. Licensed to Spotify, Apple Music, hospitality groups, and restaurant consultants.</div>
+      <ul class="model-bullets">
+        <li>Years 3–5 play</li>
+        <li>The defensible moat</li>
+        <li>$300K+ per deal</li>
+      </ul>
+    </div>
+    <div class="model-card gray-top reveal reveal-delay-4">
+      <div class="model-revenue">4–6 partnerships / year</div>
+      <div class="model-name">Editorial Partnerships</div>
+      <div class="model-desc">The weekly Tasting Menu becomes a sponsorship vehicle — wine brands, hospitality groups, streaming services.</div>
+      <ul class="model-bullets">
+        <li>$400K ARR at scale</li>
+        <li>Enhances, not interrupts</li>
+        <li>City-edition sponsorships</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- LAUNCH -->
+<section>
+  <div class="reveal"><div class="section-label">Go-To-Market</div></div>
+  <div class="reveal reveal-delay-1"><div class="section-heading">Launch like a <em>restaurant,</em><br>not a startup.</div></div>
+  <div class="reveal reveal-delay-2"><div class="section-body">Scarcity builds taste. ✦Palate should never feel like it's trying to grow — it should feel like it's being discovered.</div></div>
+  <div class="launch-timeline">
+    <div class="phase reveal">
+      <div class="phase-dot filled"></div>
+      <div>
+        <div class="phase-timing">Months 1–3</div>
+        <div class="phase-name">The Private Table</div>
+        <div class="phase-desc">500 founding members, invite-only. Handpicked from the intersection of food and music culture — critics, sommeliers, curators, chefs.</div>
+        <div class="phase-milestones">
+          <div class="milestone-pill">500 founding members</div>
+          <div class="milestone-pill">Founding Palate badge</div>
+          <div class="milestone-pill">Feed seeded with quality</div>
+        </div>
+      </div>
+    </div>
+    <div class="phase reveal reveal-delay-1">
+      <div class="phase-dot filled"></div>
+      <div>
+        <div class="phase-timing">Months 3–6</div>
+        <div class="phase-name">The First City — New York</div>
+        <div class="phase-desc">Public launch in one city. 15 marquee NYC restaurant partners onboarded. Press outreach to NYT Food, Eater NY, Grub Street.</div>
+        <div class="phase-milestones">
+          <div class="milestone-pill">15 restaurant partners</div>
+          <div class="milestone-pill">Public NYC launch</div>
+          <div class="milestone-pill">10,000 active users</div>
+        </div>
+      </div>
+    </div>
+    <div class="phase reveal reveal-delay-2">
+      <div class="phase-dot"></div>
+      <div>
+        <div class="phase-timing">Months 6–12</div>
+        <div class="phase-name">The Launch Dinner</div>
+        <div class="phase-desc">A one-night dinner in New York where every course is paired with live music, chosen by the founding community. 12 journalists. Streamed.</div>
+        <div class="phase-milestones">
+          <div class="milestone-pill">Pro subscription live</div>
+          <div class="milestone-pill">Restaurant program live</div>
+          <div class="milestone-pill">Press moment</div>
+        </div>
+      </div>
+    </div>
+    <div class="phase reveal reveal-delay-3">
+      <div class="phase-dot"></div>
+      <div>
+        <div class="phase-timing">Months 12–18</div>
+        <div class="phase-name">The Rollout — London → LA → Tokyo</div>
+        <div class="phase-desc">City by city. Each launch gets its own editorial Tasting Menu drop, local restaurant partners, and press outreach.</div>
+        <div class="phase-milestones">
+          <div class="milestone-pill">3 new cities</div>
+          <div class="milestone-pill">50,000 active users</div>
+          <div class="milestone-pill">Data licensing conversations</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="cta-bg"></div>
+  <div class="cta-logo reveal"><span class="star">✦</span>Palate</div>
+  <div class="cta-sub reveal reveal-delay-1">Where every meal finds its music.</div>
+  <div class="cta-form-wrap reveal reveal-delay-2">
+    <WaitlistForm />
+  </div>
+  <div class="cta-rule"></div>
+</div>
+
+<footer>
+  <div class="footer-logo"><span class="star">✦</span>Palate</div>
+  <div class="footer-copy">palate.menu · 2026</div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</Base>

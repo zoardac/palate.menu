@@ -1,0 +1,131 @@
+---
+---
+<form id="waitlist-form" class="waitlist-form">
+  <div class="form-row">
+    <input
+      type="email"
+      id="email"
+      name="email"
+      placeholder="your@email.com"
+      required
+      autocomplete="email"
+    />
+    <button type="submit">
+      <span class="btn-text">Request Early Access</span>
+      <span class="btn-loading" aria-hidden="true">...</span>
+    </button>
+  </div>
+  <div class="form-message" id="form-message" aria-live="polite"></div>
+</form>
+
+<script>
+  const form = document.getElementById('waitlist-form') as HTMLFormElement;
+  const message = document.getElementById('form-message')!;
+  const btnText = form.querySelector('.btn-text')!;
+  const btnLoading = form.querySelector('.btn-loading')!;
+  const btn = form.querySelector('button')!;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = (form.querySelector('#email') as HTMLInputElement).value;
+
+    btn.disabled = true;
+    btnText.classList.add('hidden');
+    btnLoading.classList.remove('hidden');
+    message.textContent = '';
+    message.className = 'form-message';
+
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        message.textContent = 'You\'re on the list. We\'ll be in touch.';
+        message.classList.add('success');
+        form.reset();
+      } else {
+        message.textContent = data.error || 'Something went wrong. Please try again.';
+        message.classList.add('error');
+      }
+    } catch {
+      message.textContent = 'Something went wrong. Please try again.';
+      message.classList.add('error');
+    } finally {
+      btn.disabled = false;
+      btnText.classList.remove('hidden');
+      btnLoading.classList.add('hidden');
+    }
+  });
+</script>
+
+<style>
+  .waitlist-form { width: 100%; max-width: 480px; }
+
+  .form-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+
+  input[type="email"] {
+    flex: 1;
+    padding: 13px 18px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 2px;
+    color: var(--paper);
+    font-family: var(--sans);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 0;
+  }
+
+  input[type="email"]::placeholder { color: rgba(255,255,255,0.25); }
+  input[type="email"]:focus { border-color: var(--gold); }
+
+  button {
+    padding: 13px 24px;
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    border-radius: 2px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, opacity 0.2s;
+    position: relative;
+  }
+
+  button:hover { background: #ddb840; }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn-loading { display: none; }
+  .btn-loading:not(.hidden) { display: inline; }
+  .btn-text.hidden { display: none; }
+
+  .form-message {
+    margin-top: 12px;
+    font-size: 13px;
+    font-style: italic;
+    font-family: var(--serif);
+    min-height: 20px;
+  }
+
+  .form-message.success { color: #8abf8a; }
+  .form-message.error { color: #c47a7a; }
+
+  @media (max-width: 480px) {
+    .form-row { flex-direction: column; }
+    button { width: 100%; }
+  }
+</style>
