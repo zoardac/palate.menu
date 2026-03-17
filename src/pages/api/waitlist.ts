@@ -2,7 +2,10 @@ import type { APIRoute } from 'astro';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { email } = await request.json();
+    const body = await request.json();
+    console.log('[WAITLIST] Received:', body);
+
+    const { email } = body;
 
     if (!email || !email.includes('@')) {
       return new Response(JSON.stringify({ error: 'A valid email is required.' }), {
@@ -10,6 +13,8 @@ export const POST: APIRoute = async ({ request }) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
+    console.log('[WAITLIST] Posting to Formspark...');
 
     const res = await fetch('https://submit.formspark.io/f/tH9jwnWcF', {
       method: 'POST',
@@ -20,7 +25,16 @@ export const POST: APIRoute = async ({ request }) => {
       body: JSON.stringify({ email }),
     });
 
-    if (!res.ok) throw new Error(`Formspark responded with ${res.status}`);
+    const responseText = await res.text();
+    console.log('[WAITLIST] Formspark status:', res.status);
+    console.log('[WAITLIST] Formspark response:', responseText);
+
+    if (!res.ok) {
+      return new Response(JSON.stringify({ error: `Formspark error: ${res.status} — ${responseText}` }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
@@ -29,7 +43,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   } catch (err) {
     console.error('[WAITLIST ERROR]', err);
-    return new Response(JSON.stringify({ error: 'Server error. Please try again.' }), {
+    return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
