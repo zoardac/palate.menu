@@ -1,8 +1,4 @@
 {
-  "framework": "astro",
-  "functions": {
-    "api/**": {
-      "runtime": "nodejs20.x"
-    }
+  "framework": "astro"
   }
 }
