@@ -1,12 +1,13 @@
 import type { APIRoute } from 'astro';
-import { put, head, getDownloadUrl } from '@vercel/blob';
+import { put, list, del } from '@vercel/blob';
 
 const BLOB_KEY = 'waitlist/signups.json';
 
 async function getSignups(): Promise<string[]> {
   try {
-    const blob = await head(BLOB_KEY);
-    const res = await fetch(blob.url);
+    const { blobs } = await list({ prefix: 'waitlist/signups' });
+    if (!blobs.length) return [];
+    const res = await fetch(blobs[0].downloadUrl);
     return await res.json();
   } catch {
     return [];
@@ -36,13 +37,17 @@ export const POST: APIRoute = async ({ request }) => {
 
     signups.push(normalized);
 
+    // Delete old blob first, then write fresh (Blob doesn't overwrite by default)
+    const { blobs } = await list({ prefix: 'waitlist/signups' });
+    if (blobs.length) await del(blobs[0].url);
+
     await put(BLOB_KEY, JSON.stringify(signups), {
-      access: 'public',
+      access: 'private',
       contentType: 'application/json',
       addRandomSuffix: false,
     });
 
-    console.log(`[WAITLIST] New signup: ${normalized}`);
+    console.log(`[WAITLIST] New signup: ${normalized} (total: ${signups.length})`);
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
