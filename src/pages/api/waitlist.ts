@@ -1,7 +1,5 @@
 import type { APIRoute } from 'astro';
 
-const FORMSPARK_URL = 'https://submit.formspark.io/f/tH9jwnWcF';
-
 export const POST: APIRoute = async ({ request }) => {
   try {
     const { email } = await request.json();
@@ -13,22 +11,22 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const res = await fetch(FORMSPARK_URL, {
+    const res = await fetch('https://submit.formspark.io/f/tH9jwnWcF', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       body: JSON.stringify({ email }),
     });
 
-    if (!res.ok) {
-      throw new Error(`Formspark error: ${res.status}`);
-    }
-
-    console.log(`[WAITLIST] New signup: ${email}`);
+    if (!res.ok) throw new Error(`Formspark responded with ${res.status}`);
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
+
   } catch (err) {
     console.error('[WAITLIST ERROR]', err);
     return new Response(JSON.stringify({ error: 'Server error. Please try again.' }), {

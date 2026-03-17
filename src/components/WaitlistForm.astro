@@ -38,9 +38,9 @@
     message.className = 'form-message';
 
     try {
-      const res = await fetch('https://submit.formspark.io/f/tH9jwnWcF', {
+      const res = await fetch('/api/waitlist', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
 
